@@ -1,7 +1,7 @@
 import * as React from "react";
 import { PARKING_CAPACITY } from "../config";
 import { ParkingContextType, ParkingSpace } from "./types";
-import { getTicket, payTicket } from "../utils/utils";
+import { getTicket, getTicketState, payTicket } from "../utils/utils";
 
 export const ParkingContext = React.createContext<
   ParkingContextType | undefined
@@ -20,47 +20,55 @@ export function ParkingContextProvider({
   children: React.ReactNode;
 }) {
   const [parkingSpaces, setParkingSpaces] = React.useState(initParking());
+  const [activeTicketBarcode, setActiveTicketBarcode] = React.useState<
+    string | null
+  >(null);
+  const selectTicket = (barcode: string | null) => {
+    setActiveTicketBarcode(barcode);
+  };
 
-  const updateParkingSpace = (
-    spaceNumber: number,
-    ticket: string | null,
-    timestamp: Date
-  ) => {
+  const updateParkingSpace = (spaceNumber: number, ticket: string | null) => {
     setParkingSpaces((prev: ParkingSpace[]) =>
       prev.map((space) =>
-        space.spaceNumber === spaceNumber
-          ? { ...space, ticket, timestamp }
-          : space
+        space.spaceNumber === spaceNumber ? { ...space, ticket } : space
       )
     );
   };
 
   const park = async (spaceNumber: number) => {
-    const { barcode, timeOfEntry } = getTicket();
-    console.log(
-      `Parking space ${spaceNumber} assigned ticket: ${barcode} at ${timeOfEntry}`
+    const space = parkingSpaces.find(
+      (space) => space.spaceNumber === spaceNumber
     );
-    sessionStorage.setItem(`parkingSpace-${spaceNumber}`, barcode);
+    if (space && !space.ticket) {
+      const { barcode, timeOfEntry } = getTicket();
+      console.log(
+        `Parking space ${spaceNumber} assigned ticket: ${barcode} at ${timeOfEntry}`
+      );
 
-    const p = new Promise((resolve) =>
-      resolve(updateParkingSpace(spaceNumber, barcode, timeOfEntry))
-    );
-    return await p;
+      const p = new Promise((resolve) =>
+        resolve(updateParkingSpace(spaceNumber, barcode))
+      );
+      selectTicket(barcode);
+      console.log(
+        "You have parked your car in space:",
+        spaceNumber,
+        "with ticket:",
+        barcode,
+        "in order to pay, you have to pay at the parking machine."
+      );
+
+      return await p;
+    } else {
+      throw new Error("Parking space is already occupied or does not exist.");
+    }
   };
 
   const leave = async (spaceNumber: number) => {
-    const barcode = sessionStorage.getItem(`parkingSpace-${spaceNumber}`) || "";
-    if (!barcode) {
-      throw new Error("No ticket found for this parking space.");
-    }
-
-    console.log(
-      `Leaving parking space ${spaceNumber} with ticket: ${barcode} at ${new Date()}`
-    );
-    payTicket(barcode, "Cash");
     const p = new Promise((resolve) =>
-      resolve(updateParkingSpace(spaceNumber, null, new Date()))
+      resolve(updateParkingSpace(spaceNumber, null))
     );
+    selectTicket(null);
+    console.log(`Parking space ${spaceNumber} is now free.`);
     return await p;
   };
 
@@ -68,6 +76,10 @@ export function ParkingContextProvider({
     parkingSpaces,
     park,
     leave,
+    payTicket,
+    getTicketState,
+    activeTicketBarcode,
+    selectTicket,
   };
 
   return (

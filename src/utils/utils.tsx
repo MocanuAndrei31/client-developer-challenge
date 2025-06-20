@@ -24,7 +24,6 @@ export function calculatePrice(barcode: string) {
   const timeOfLeave = new Date();
 
   const duration = (timeOfLeave.getTime() - timeOfEntry.getTime()) / 1000 / 60;
-
   const pricePerHour = 2;
   const price = Math.ceil(duration / 60) * pricePerHour;
 
@@ -65,7 +64,27 @@ export function payTicket(barcode: string, paymentMethod: string) {
 
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   `;
-  console.log("Thank you for using our parking service!", receipt);
 
   return receipt;
+}
+
+export function getTicketState(barcode: string) {
+  const ticket = sessionStorage.getItem(`barcode-${barcode}`);
+  if (!ticket) {
+    return null;
+  }
+  const ticketData: TicketData = JSON.parse(ticket);
+  const dateOfPayment = new Date(ticketData.paymentTime || 0);
+  const currentDate = new Date();
+
+  const timeSincePayment =
+    (currentDate.getTime() - dateOfPayment.getTime()) / 1000 / 60;
+
+  const isPaid = ticketData.paid;
+
+  if (isPaid && timeSincePayment < 15) {
+    return "Paid";
+  } else {
+    return "Not Paid";
+  }
 }
