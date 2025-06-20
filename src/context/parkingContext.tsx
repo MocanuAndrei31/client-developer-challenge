@@ -1,7 +1,7 @@
 import * as React from "react";
 import { PARKING_CAPACITY } from "../config";
 import { ParkingContextType, ParkingSpace } from "./types";
-import { calculatePrice, getTicket } from "../utils/utils";
+import { getTicket, payTicket } from "../utils/utils";
 
 export const ParkingContext = React.createContext<
   ParkingContextType | undefined
@@ -53,11 +53,11 @@ export function ParkingContextProvider({
     if (!barcode) {
       throw new Error("No ticket found for this parking space.");
     }
+
     console.log(
-      `Leaving parking space ${spaceNumber} with ticket: ${barcode} at ${new Date()}, having to pay: ${calculatePrice(
-        barcode
-      )} $`
+      `Leaving parking space ${spaceNumber} with ticket: ${barcode} at ${new Date()}`
     );
+    payTicket(barcode, "Cash");
     const p = new Promise((resolve) =>
       resolve(updateParkingSpace(spaceNumber, null, new Date()))
     );

@@ -6,6 +6,9 @@ export interface ParkingSpace {
 export interface TicketData {
   barcode: string;
   timeOfEntry: Date;
+  paid: boolean;
+  paymentMethod?: string;
+  paymentTime?: Date;
 }
 
 export interface ParkingContextType {
