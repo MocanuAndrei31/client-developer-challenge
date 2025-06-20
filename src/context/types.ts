@@ -3,6 +3,11 @@ export interface ParkingSpace {
   ticket: string | null;
 }
 
+export interface TicketData {
+  barcode: string;
+  timeOfEntry: Date;
+}
+
 export interface ParkingContextType {
   parkingSpaces: ParkingSpace[];
   park: (spaceNumber: number) => void;
