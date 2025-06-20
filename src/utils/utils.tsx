@@ -1,4 +1,5 @@
-import { TicketData } from "../context/types";
+import { TicketData, ParkingSpace } from "../context/types";
+import { PARKING_CAPACITY } from "../config";
 
 export function getTicket() {
   const barcode = Math.random().toString().substring(2, 18).padEnd(16, "0");
@@ -87,4 +88,11 @@ export function getTicketState(barcode: string) {
   } else {
     return "Not Paid";
   }
+}
+
+export function getFreeSpaces(parkingSpaces: ParkingSpace[]): number {
+  const occupiedCount = parkingSpaces.filter(
+    (space) => space.ticket !== null
+  ).length;
+  return PARKING_CAPACITY - occupiedCount;
 }

@@ -2,6 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { useParking } from "../context/parkingContext";
 import { ParkingSpace } from "../context/types";
+import { getFreeSpaces } from "../utils/utils";
 
 function ParkingBox({
   parkingSpace,
@@ -76,18 +77,28 @@ function PaymentBox() {
 
   return (
     <PaymentBoxContainer>
-      <span>Payment Box</span>
       <PaymentButton onClick={() => handlePayment("Credit Card")}>
-        Credit Card
+        💳
       </PaymentButton>
       <PaymentButton onClick={() => handlePayment("Debit Card")}>
-        Debit Card
+        💳
       </PaymentButton>
-      <PaymentButton onClick={() => handlePayment("Cash")}>Cash</PaymentButton>
+      <PaymentButton onClick={() => handlePayment("Cash")}>💵</PaymentButton>
     </PaymentBoxContainer>
   );
 }
+function Sign() {
+  const { parkingSpaces } = useParking();
 
+  const freeSpaces = getFreeSpaces(parkingSpaces);
+
+  return (
+    <SignContainer>
+      <SignText>Free Spaces</SignText>
+      <SignCount isFull={freeSpaces === 0}>{freeSpaces}</SignCount>
+    </SignContainer>
+  );
+}
 function Gate() {
   const { getTicketState, leave, parkingSpaces, activeTicketBarcode } =
     useParking();
@@ -144,6 +155,7 @@ function OuterRow({ start, end }: { start: number; end: number }) {
 export default function ParkingView() {
   return (
     <Container>
+      <Sign />
       <Parking>
         <OuterRow start={0} end={16} />
         <div />
@@ -182,14 +194,16 @@ const InteractiveBox = styled.div`
 
 const PaymentBoxContainer = styled(InteractiveBox)`
   grid-column: 2 / 3;
+  display: flex;
   grid-row: 3 / 4;
-  flex-direction: column;
+  flex-direction: row;
   justify-content: space-around;
-  gap: 8px;
+  gap: 2px;
 `;
 
 const PaymentButton = styled.button`
-  width: 90%;
+  width: 40%;
+  height: 50px;
   padding: 8px;
   font-size: 14px;
   background-color: #f8f9fa;
@@ -212,6 +226,34 @@ const GateContainer = styled(InteractiveBox)`
   &:hover {
     background-color: #b0c4de;
   }
+`;
+const SignContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 200px;
+  height: 120px;
+  background-color: rgb(55, 52, 223);
+  border-radius: 10px;
+  padding: 10px;
+  margin: 0 auto 40px auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+`;
+
+const SignText = styled.p`
+  margin: 0;
+  color: #ecf0f1;
+  font-size: 20px;
+  font-weight: bold;
+  text-transform: uppercase;
+`;
+
+const SignCount = styled.p<{ isFull: boolean }>`
+  margin: 0;
+  font-size: 48px;
+  font-weight: bold;
+  color: ${(props) => (props.isFull ? "#e74c3c" : "#2ecc71")};
 `;
 
 const Parking = styled.div`
