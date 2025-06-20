@@ -1,7 +1,13 @@
 import * as React from "react";
 import { PARKING_CAPACITY } from "../config";
 import { ParkingContextType, ParkingSpace } from "./types";
-import { getTicket, getTicketState, payTicket } from "../utils/utils";
+import {
+  calculatePrice,
+  getFreeSpaces,
+  getTicket,
+  getTicketState,
+  payTicket,
+} from "../utils/utils";
 
 export const ParkingContext = React.createContext<
   ParkingContextType | undefined
@@ -34,6 +40,16 @@ export function ParkingContextProvider({
       )
     );
   };
+
+  React.useEffect(() => {
+    window.functions = {
+      getFreeSpaces: () => getFreeSpaces(parkingSpaces),
+      getTicket: getTicket,
+      calculatePrice: calculatePrice,
+      payTicket: payTicket,
+      getTicketState: getTicketState,
+    };
+  }, [parkingSpaces]);
 
   const park = async (spaceNumber: number) => {
     const space = parkingSpaces.find(
